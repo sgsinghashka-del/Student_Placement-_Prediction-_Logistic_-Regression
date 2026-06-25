@@ -1,0 +1,18 @@
+**📁 Project Structure**
+Student_Placement_Logistic_ML/
+│
+├── app/
+│   └── main.py              # FastAPI backend
+│
+├── model/
+│   └── train_model.py       # Model training script
+│   └── model_v1.pkl         # Versioned model
+│
+├── ui/
+│   └── streamlit_app.py     # Frontend UI
+│
+├── logs/
+│   └── api.log              # Request logs
+│
+├── requirements.txt
+└── README.md
