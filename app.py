@@ -1,23 +1,24 @@
-import streamlit as st
+import os
+
 import requests
+import streamlit as st
 
 # -----------------------------
-# Config
+# Configuration
 # -----------------------------
-API_URL = "http://127.0.0.1:8000/predict"
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/predict")
 
 st.set_page_config(
     page_title="Student Placement Predictor",
     page_icon="🎓",
-    layout="centered"
+    layout="centered",
 )
 
 # -----------------------------
 # UI Header
 # -----------------------------
 st.title("🎓 Student Placement Prediction")
-st.markdown("Predict placement probability using ML model")
-
+st.markdown("Estimate placement probability using an interpretable machine-learning model.")
 st.divider()
 
 # -----------------------------
@@ -30,7 +31,7 @@ with st.form("prediction_form"):
     internships = st.number_input("Internships", 0, 5, 1)
     mock_score = st.slider("Mock Interview Score", 50.0, 100.0, 75.0)
 
-    submit = st.form_submit_button("Predict")
+    submit = st.form_submit_button("Predict", use_container_width=True)
 
 # -----------------------------
 # Prediction Call
@@ -41,27 +42,26 @@ if submit:
         "Aptitude_Score": aptitude,
         "Technical_Projects": projects,
         "Internships": internships,
-        "Mock_Interview_Score": mock_score
+        "Mock_Interview_Score": mock_score,
     }
 
-    with st.spinner("Predicting..."):
-        response = requests.post(API_URL, json=payload)
-
-    if response.status_code == 200:
+    try:
+        with st.spinner("Predicting..."):
+            response = requests.post(API_URL, json=payload, timeout=10)
+        response.raise_for_status()
         result = response.json()
 
-        st.success("Prediction Successful")
-
+        st.success("Prediction successful")
         st.metric(
             label="Placement Probability",
-            value=f"{result['placement_probability'] * 100:.1f}%"
+            value=f"{result['placement_probability'] * 100:.1f}%",
         )
 
         if result["placed_prediction"] == 1:
-            st.success("✅ Likely to be Placed")
+            st.success("✅ Likely to be placed")
         else:
-            st.error("❌ Unlikely to be Placed")
+            st.warning("⚠️ Additional preparation may be helpful")
 
-        st.caption(f"Model Version: {result['model_version']}")
-    else:
-        st.error("API Error – Is FastAPI running?")
+        st.caption(f"Model version: {result['model_version']}")
+    except requests.RequestException as error:
+        st.error(f"Could not reach the prediction API: {error}")

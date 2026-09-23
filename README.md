@@ -1,191 +1,172 @@
 # 🎓 Student Placement Prediction
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Model](https://img.shields.io/badge/Model-Logistic%20Regression-8B5CF6)](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression)
+<p align="center">
+  <strong>A polished, end-to-end machine-learning experience for estimating student placement probability.</strong><br />
+  <sub>Train a model · serve predictions with FastAPI · explore them in Streamlit</sub>
+</p>
 
-An end-to-end machine-learning application that estimates a student's placement probability from academic performance, practical experience, and interview-readiness signals. The project combines a scikit-learn model, a FastAPI inference service, and a Streamlit user interface.
+<p align="center">
+  <a href="https://github.com/sgsinghashka-del/Student_Placement-_Prediction-_Logistic_-Regression"><img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python 3.9 or newer" /></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="https://streamlit.io/"><img src="https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit" /></a>
+  <a href="https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression"><img src="https://img.shields.io/badge/Model-Logistic%20Regression-7C3AED" alt="Logistic Regression" /></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Ready-Docker-2496ED?logo=docker&logoColor=white" alt="Docker ready" /></a>
+</p>
 
-> **Project preview** — the following screenshot is a generated UI preview of the Streamlit application.
+<p align="center">
+  <img src="docs/project-preview.svg" alt="Premium dashboard preview of the student placement prediction system" width="92%" />
+</p>
 
-![Student Placement Prediction dashboard preview](docs/project-preview.svg)
+## Why this project?
 
-## ✨ Highlights
+Placement-readiness signals are easier to act on when they are available through a simple, explainable workflow. This project turns five student attributes into a probability estimate and exposes the model through both an API and a lightweight web interface.
 
-- **Probabilistic predictions** with Logistic Regression.
-- **Five input signals:** CGPA, aptitude score, technical projects, internships, and mock interview score.
-- **FastAPI service** with health, prediction, explainability, and metrics endpoints.
-- **Streamlit interface** for interactive predictions.
-- **Versioned model artifact** (`model/model_v1.pkl`).
-- **Configurable decision threshold** through `PREDICTION_THRESHOLD`.
-- **Request logging and latency metrics** for basic observability.
+> **Important:** the training data is synthetic and the application is for demonstration and learning. It must not be used to make real hiring or educational decisions.
 
-## 🧠 How it works
+## Product snapshot
+
+| Capability | What it provides |
+| --- | --- |
+| **Prediction** | Probability of placement plus a thresholded classification |
+| **Explainability** | Logistic Regression coefficients for feature-level interpretation |
+| **Observability** | Request count, average latency, model version, and API logs |
+| **Repeatability** | Seeded synthetic data and a versioned `model_v1.pkl` artifact |
+| **Deployment** | Separate API/UI Docker images orchestrated with Compose |
+
+## Streamlit experience
+
+The interface mirrors the actual controls in `app.py`: CGPA, aptitude score, technical projects, internships, and mock interview score. After submission, it displays a probability, placement recommendation, and model version.
+
+<p align="center">
+  <img src="docs/streamlit-screenshot.svg" alt="Streamlit app output screenshot preview" width="86%" />
+</p>
+
+> The repository contains a generated, screenshot-style SVG preview because the application is run locally. Launch the app with the instructions below to view the live Streamlit output.
+
+## Architecture
 
 ```text
-Student profile → Streamlit UI → FastAPI /predict → Logistic Regression → Placement probability
-                                      ├── /explain  (model coefficients)
-                                      └── /metrics  (request and latency metrics)
+┌──────────────────────┐       HTTP        ┌────────────────────────┐
+│ Streamlit UI :8501  │ ────────────────▶ │ FastAPI API :8000      │
+│ student inputs       │                  │ /predict /explain       │
+└──────────────────────┘                  │ /metrics /             │
+                                          └───────────┬────────────┘
+                                                      │
+                                          ┌───────────▼────────────┐
+                                          │ StandardScaler +       │
+                                          │ LogisticRegression      │
+                                          └───────────┬────────────┘
+                                                      │
+                                          model/model_v1.pkl + logs
 ```
 
-The training script creates a reproducible synthetic dataset of 1,000 student profiles, standardizes the features, trains a Logistic Regression pipeline, and saves the trained model as `model/model_v1.pkl`.
+## Inputs
 
-## 📊 Input features
+| Field | Meaning | Range / example |
+| --- | --- | --- |
+| `CGPA` | Academic performance | `5.0–10.0` |
+| `Aptitude_Score` | Logical and aptitude assessment | `40–100` |
+| `Technical_Projects` | Completed technical projects | `0+` |
+| `Internships` | Completed internships | `0+` |
+| `Mock_Interview_Score` | Interview-readiness score | `50.0–100.0` |
 
-| Feature | Description | Example |
-| --- | --- | ---: |
-| `CGPA` | Academic performance on a 5–10 scale | `8.2` |
-| `Aptitude_Score` | Logical and aptitude assessment score | `78` |
-| `Technical_Projects` | Number of completed technical projects | `3` |
-| `Internships` | Number of internships completed | `1` |
-| `Mock_Interview_Score` | Interview-readiness score on a 50–100 scale | `75` |
-
-## 🗂️ Repository structure
-
-```text
-.
-├── app.py             # Streamlit frontend
-├── main.py            # FastAPI backend
-├── train_model.py     # Dataset generation and model training
-├── requirements.txt   # Python dependencies
-├── docs/
-│   └── project-preview.svg
-└── README.md
-```
-
-The `model/` and `logs/` directories are created at runtime when the model is trained and the API receives requests.
-
-## 🚀 Quick start
-
-### 1. Clone and install
+## Run locally
 
 ```bash
 git clone https://github.com/sgsinghashka-del/Student_Placement-_Prediction-_Logistic_-Regression.git
 cd Student_Placement-_Prediction-_Logistic_-Regression
-
 python -m venv .venv
-# macOS/Linux
-source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-
+source .venv/bin/activate                 # Windows: .venv\Scripts\activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-```
-
-### 2. Train the model
-
-Create the output directory and generate the versioned model artifact:
-
-```bash
-mkdir -p model
 python train_model.py
 ```
 
-On Windows PowerShell, use `New-Item -ItemType Directory model -Force` instead of `mkdir -p model`.
-
-### 3. Start the API
-
-In terminal 1:
+Start the API in one terminal:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-The API is available at `http://127.0.0.1:8000`. Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
-
-### 4. Start the Streamlit app
-
-In terminal 2:
+Start Streamlit in another:
 
 ```bash
 streamlit run app.py
 ```
 
-The browser UI will open at the local Streamlit URL shown in the terminal. Keep the FastAPI server running while making predictions.
+Open `http://localhost:8501` for the UI or `http://localhost:8000/docs` for interactive API documentation.
 
-## 🔌 API reference
+## Run with Docker
 
-### Health check — `GET /`
-
-```json
-{
-  "status": "running",
-  "model_version": "v1",
-  "threshold": 0.6
-}
-```
-
-### Prediction — `POST /predict`
+The Compose setup builds two small services and connects the UI to the API by service name:
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/predict" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "CGPA": 8.2,
-    "Aptitude_Score": 78,
-    "Technical_Projects": 3,
-    "Internships": 1,
-    "Mock_Interview_Score": 75
-  }'
+docker compose up --build
 ```
 
-Example response:
+Then open:
 
-```json
-{
-  "model_version": "v1",
-  "placement_probability": 0.72,
-  "placed_prediction": 1,
-  "threshold_used": 0.6
-}
-```
+- **Streamlit UI:** `http://localhost:8501`
+- **FastAPI docs:** `http://localhost:8000/docs`
+- **API health:** `http://localhost:8000/`
 
-### Explainability — `POST /explain`
+Stop the stack with `docker compose down`. API logs are retained in the named `api_logs` volume during the Docker environment's lifetime.
 
-Returns the standardized Logistic Regression coefficients used as feature-importance signals. The endpoint accepts the same `StudentInput` schema as `/predict`.
-
-### Metrics — `GET /metrics`
-
-Returns the in-process request count, average latency, and active model version. Metrics reset whenever the API process restarts.
-
-## ⚙️ Configuration
-
-The placement decision threshold defaults to `0.6` and can be overridden with an environment variable:
+To change the decision threshold:
 
 ```bash
-# macOS/Linux
-PREDICTION_THRESHOLD=0.7 uvicorn main:app --reload
-
-# Windows PowerShell
-$env:PREDICTION_THRESHOLD = "0.7"
-uvicorn main:app --reload
+PREDICTION_THRESHOLD=0.7 docker compose up --build
 ```
 
-## 🛠️ Technology stack
+## API quick reference
 
-- **Python** — application and model-training language
-- **pandas / NumPy** — data generation and preparation
-- **scikit-learn** — scaling, pipeline construction, and Logistic Regression
-- **FastAPI + Uvicorn** — inference API
-- **Streamlit** — interactive frontend
-- **Joblib** — model serialization
+### `GET /`
 
-## ⚠️ Notes and limitations
+```json
+{"status":"running","model_version":"v1","threshold":0.6}
+```
 
-- The training data is synthetic and is intended for demonstration and learning—not real hiring decisions.
-- The API loads `model/model_v1.pkl` during startup, so train the model before launching FastAPI.
-- The in-memory metrics are process-local and are not a replacement for production monitoring.
-- No authentication, rate limiting, or persistent database is included.
+### `POST /predict`
 
-## 🔮 Future improvements
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H 'Content-Type: application/json' \
+  -d '{"CGPA":8.2,"Aptitude_Score":78,"Technical_Projects":3,"Internships":1,"Mock_Interview_Score":75}'
+```
 
-- Replace synthetic data with a validated, privacy-preserving dataset.
-- Add automated tests, CI, and model evaluation metrics such as precision, recall, ROC-AUC, and calibration.
+### `POST /explain`
+
+Returns the model's standardized Logistic Regression coefficients for the five input features.
+
+### `GET /metrics`
+
+Returns in-process request count, average latency, and active model version.
+
+## Repository map
+
+```text
+.
+├── app.py                 # Streamlit frontend
+├── main.py                # FastAPI inference service
+├── train_model.py         # Synthetic data generation and training
+├── requirements.txt       # Python dependencies
+├── Dockerfile.api         # API image
+├── Dockerfile.ui          # Streamlit image
+├── docker-compose.yml     # Two-service local deployment
+├── docs/
+│   ├── project-preview.svg
+│   └── streamlit-screenshot.svg
+└── README.md
+```
+
+## Roadmap
+
+- Add automated tests and CI.
+- Report precision, recall, ROC-AUC, and calibration metrics.
+- Replace synthetic data with validated, privacy-preserving data.
 - Add model/data versioning and drift monitoring.
-- Containerize and deploy the API and UI.
-- Add authentication, rate limiting, and persistent observability.
+- Add authentication and persistent observability.
 
-## 📄 License
+## License
 
 No license has been specified yet. Add a license before distributing or reusing this project in production.
