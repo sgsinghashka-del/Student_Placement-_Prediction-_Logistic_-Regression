@@ -167,6 +167,3 @@ Returns in-process request count, average latency, and active model version.
 - Add model/data versioning and drift monitoring.
 - Add authentication and persistent observability.
 
-## License
-
-No license has been specified yet. Add a license before distributing or reusing this project in production.
